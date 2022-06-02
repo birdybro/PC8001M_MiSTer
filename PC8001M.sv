@@ -289,7 +289,7 @@ always @(posedge clk_sys) begin
 	ce_pix <= !div;
 end
 
-video_mixer #(.LINE_LENGTH(160), .GAMMA(1)) video_mixer
+video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
 (
         .*,
 
