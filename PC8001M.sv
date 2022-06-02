@@ -198,7 +198,8 @@ assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 `include "build_id.v" 
 localparam CONF_STR = {
 	"PC8001M;;",
-	"F,BIN,Load ROM;",
+	"-;",
+	"F,BIND88,Load ROM;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"-;",
@@ -283,7 +284,7 @@ wire hblank, vblank;
 wire hsync, vsync;
 
 always @(posedge clk_sys) begin
-	reg [4:0] div;
+	reg [3:0] div;
 	div <= div + 1'd1;
 	ce_pix <= !div;
 end

@@ -7,3 +7,11 @@ This is a port of [@radiojunkbox](https://github.com/radiojunkbox)'s [pc8001m](h
 ## Keyboard layout
 
 ![](doc/keyboard.jpg)
+
+
+## To-Do
+
+* Figure out video
+* Load BIOS (have to substitue the MIF loading for an sdram module and loading to SDRAM probably)
+* Be able to load ROMs (d88 is standard from TOSEC) (same as above, substitute current MIF loading)
+* Map keyboard somehow
