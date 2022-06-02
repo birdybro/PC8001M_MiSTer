@@ -31,7 +31,7 @@
 //Intel and sold by Intel or its authorized distributors.  Please
 //refer to the applicable agreement for further details.
 
-module biosrom (
+module biosrom_bb (
 	address,
 	clock,
 	q);

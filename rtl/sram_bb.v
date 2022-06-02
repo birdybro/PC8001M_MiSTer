@@ -31,7 +31,7 @@
 //Intel and sold by Intel or its authorized distributors.  Please
 //refer to the applicable agreement for further details.
 
-module sram (
+module sram_bb (
 	address,
 	clock,
 	data,
