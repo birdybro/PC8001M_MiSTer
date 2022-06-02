@@ -15,6 +15,8 @@
 
 module pc8001m (
 	input wire			clk50,
+	input wire			clk2,	//outclk_0 = 28.63636
+	input wire			clk48,	//outclk_3 = 48.00000
 	input	wire		reset_n,
 	input wire			ps2_clk,
 	input wire			ps2_data,
@@ -45,11 +47,11 @@ module pc8001m (
 	output wire			dac_out
 	);
 		
-	wire			clk2;		// pll clock 28.63636MHz
+	// wire			clk2;		// pll clock 28.63636MHz
 	wire			clk;		// clock 14.31818MHz
 	wire			clk3;		// clock  3.57954MHz
 	
-	wire			clk48;	// pll clock 48MHz
+	// wire			clk48;	// pll clock 48MHz
 	reg			clk4;		// clock 4MHz
 
 	wire			cdin;
@@ -608,11 +610,11 @@ module pc8001m (
 	//
 	// PLL 1
 	//
-	pll1 pll1 (
-		.refclk		( clk50	),		// Clock in		50MHz
-		.rst			( 1'b0	),
-		.outclk_0	( clk2 	)		// clock out	28.63636MHz
-	);
+	// pll1 pll1 (
+	// 	.refclk		( clk50	),		// Clock in		50MHz
+	// 	.rst			( 1'b0	),
+	// 	.outclk_0	( clk2 	)		// clock out	28.63636MHz
+	// );
 	
 	reg [2:0]	cnt;
 	assign 		clk = cnt[0];			// 14.31818MHz
@@ -621,14 +623,14 @@ module pc8001m (
 		cnt <= cnt + 3'b01;
 	end
 	
-	//
-	// PLL 2
-	//
-	pll2 pll2 (
-		.refclk		( clk50	),		// Clock in		50MHz
-		.rst			( 1'b0	),
-		.outclk_0	( clk48 	)		// clock out	48MHz
-	);
+	// //
+	// // PLL 2
+	// //
+	// pll2 pll2 (
+	// 	.refclk		( clk50	),		// Clock in		50MHz
+	// 	.rst			( 1'b0	),
+	// 	.outclk_0	( clk48 	)		// clock out	48MHz
+	// );
 	
 	//
 	// CLOCK 4MHz
