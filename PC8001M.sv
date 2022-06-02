@@ -202,11 +202,30 @@ localparam CONF_STR = {
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"-;",
+	"O[1],Green Display,Off,On;"
+	"O[3],Full Dot Color,Off,On;"
+	"-;",
+	"O[4],CPU Mode,PCG8100,PCG8200;"
+	"O[5],PCG,Off,On;"
+	"O[6],Expansion ROM,Off,On;"
+	"O[7],High-speed mode,Off,On;"
+	"-;",
+	"O[2],Motor Beep,Off,On;"
+	"-;",
 	"R[0],Reset and close OSD;",
 	"V,v",`BUILD_DATE 
 };
 
 wire [127:0] status;
+
+wire green_display = status[1];
+wire motor_beep = status[2];
+wire fdc = status[3];
+wire cpu_mode = status[4];
+wire pcg = status[5];
+wire exp_rom = status[6];
+wire high_speed = status[7];
+wire [9:0] switch = {high_speed, 1'b0, exp_rom, 1'b0, pcg, cpu_mode, fdc, motor_beep, 1'b0, green_display};
 
 wire forced_scandoubler;
 wire [21:0] gamma_bus;
@@ -305,9 +324,9 @@ pc8001m pc8001m
 	.reset_n(~RESET),		// input wire			reset_n,
 	.ps2_clk(),				// input wire			ps2_clk,
 	.ps2_data(),			// input wire			ps2_data,
-	.rxd(),					// input wire			rxd,
-	.cmt_in(),				// input wire			cmt_in,
-	.txd(),					// output wire			txd,
+	.rxd(),					// input wire			rxd, // rxd input JP2-9 PIN_G18 SIO input ・ 
+	.cmt_in(),				// input wire			cmt_in, // ○ CMT / SIO input / output ・ cmt_in input JP2-7 PIN_C13 External comparator circuit required) 
+	.txd(),					// output wire			txd, // txd output JP2-10 PIN_G17 SIO output <DE10-Lite> 
 	// These were commented out as they are for an ext. piezo device. should add them in later mixed into the audio
 	// .beep_out(),			// output wire			beep_out,
 	// .motor_out(),		// output wire			motor_out,
@@ -325,7 +344,17 @@ pc8001m pc8001m
 	// .HEX4(),				// output wire [6:0]	HEX4,
 	// .HEX5(),				// output wire [6:0]	HEX5,
 	// .LEDR(),				// output wire [9:0]	LEDR,
-	.SW(),					// input wire  [9:0]	SW,
+
+// 	○ Slide SW OFF ON 
+//  ・ SW0 color monitor display Green monitor display ・ SW1 unused ・ SW2 BEEP CMT output (linked with motor) 
+//  ・ SW3 FDC OFF FDC ON (FDC: PCG full dot color) 
+//  ・ SW4 PCG8100 mode PCG8200 mode ・ SW5 PCG OFF PCG ON 
+//  ・ SW6 unused ・ SW7 without expansion ROM Expansion ROM (SD-DOS) available ・ SW8 unused 		
+//  ・ SW9 Normal mode High-speed mode (WAIT reduced) 
+//  * If you move SW9, the operation may freeze. ○ Push button ・ KEY0 reset (STOP + reset possible) 
+//  ・ KEY1 unused ・ KEY2 (DE0-CV) unused ・ KEY3 (DE0-CV) unused ○ LED 
+	.SW(switch),			// input wire  [9:0]	SW,
+
 	.sd_dat(),				// input wire			sd_dat,
 	.sd_clk(),				// output wire			sd_clk,
 	.sd_cmd(),				// output wire			sd_cmd,
