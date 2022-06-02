@@ -198,6 +198,7 @@ assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 `include "build_id.v" 
 localparam CONF_STR = {
 	"PC8001M;;",
+	"F,BIN,Load ROM;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"-;",
@@ -262,6 +263,12 @@ wire ce_pix;
 wire hblank, vblank;
 wire hsync, vsync;
 
+always @(posedge clk48) begin
+	reg [2:0] div;
+	div <= div + 1'd1;
+	ce_pix <= !div;
+end
+
 video_mixer #(.LINE_LENGTH(160), .GAMMA(1)) video_mixer
 (
         .*,
@@ -293,22 +300,24 @@ assign AUDIO_MIX = 0;
 pc8001m pc8001m
 (
 	.clk50(CLK_50M),		// input wire			clk50,
-	.clk2(clk_sys),			// input wire			clk2,	//outclk_0 = 28.63636MHz - ref clk?
-	.clk48(clk48),			// input wire			clk48,	//outclk_3 = 48.00000MHz - 2nd ref clk?
-	.reset_n(~RESET),		// input	wire		reset_n,
+	.clk2(clk_sys),			// input wire			clk2,	//outclk_0 = 28.63636MHz - ref clk
+	.clk48(clk48),			// input wire			clk48,	//outclk_3 = 48.00000MHz - 2nd ref clk for video?
+	.reset_n(~RESET),		// input wire			reset_n,
 	.ps2_clk(),				// input wire			ps2_clk,
 	.ps2_data(),			// input wire			ps2_data,
-	.rxd(),					// input	wire		rxd,
+	.rxd(),					// input wire			rxd,
 	.cmt_in(),				// input wire			cmt_in,
 	.txd(),					// output wire			txd,
+	// These were commented out as they are for an ext. piezo device. should add them in later mixed into the audio
 	// .beep_out(),			// output wire			beep_out,
 	// .motor_out(),		// output wire			motor_out,
 	.bw_out(),				// output wire [1:0]	bw_out,
-	.vga_hs(hsync),		// output wire			vga_hs,
-	.vga_vs(vsync),		// output wire			vga_vs,
-	.vga_r(R),			// output wire [3:0]	vga_r,
-	.vga_g(G),			// output wire [3:0]	vga_g,
-	.vga_b(B),			// output wire [3:0]	vga_b,
+	.vga_hs(hsync),			// output wire			vga_hs,
+	.vga_vs(vsync),			// output wire			vga_vs,
+	.vga_r(R),				// output wire [3:0]	vga_r,
+	.vga_g(G),				// output wire [3:0]	vga_g,
+	.vga_b(B),				// output wire [3:0]	vga_b,
+	// The following were commented out because they are solely for a seven seg display
 	// .HEX0(),				// output wire [6:0]	HEX0,
 	// .HEX1(),				// output wire [6:0]	HEX1,
 	// .HEX2(),				// output wire [6:0]	HEX2,
@@ -316,7 +325,7 @@ pc8001m pc8001m
 	// .HEX4(),				// output wire [6:0]	HEX4,
 	// .HEX5(),				// output wire [6:0]	HEX5,
 	// .LEDR(),				// output wire [9:0]	LEDR,
-	.SW(),					// input wire[ 9:0]		SW,
+	.SW(),					// input wire  [9:0]	SW,
 	.sd_dat(),				// input wire			sd_dat,
 	.sd_clk(),				// output wire			sd_clk,
 	.sd_cmd(),				// output wire			sd_cmd,
