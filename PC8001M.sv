@@ -184,11 +184,6 @@ assign VGA_F1 = 0;
 assign VGA_SCALER = 0;
 assign HDMI_FREEZE = 0;
 
-assign AUDIO_S = 0;
-assign AUDIO_L = 0;
-assign AUDIO_R = 0;
-assign AUDIO_MIX = 0;
-
 assign LED_DISK = 0;
 assign LED_POWER = 0;
 assign BUTTONS = 0;
@@ -254,6 +249,12 @@ wire VSync;
 wire ce_pix;
 wire [7:0] video;
 
+wire [3:0] audio;
+assign AUDIO_L = audio;
+assign AUDIO_R = audio;
+assign AUDIO_S = 0;
+assign AUDIO_MIX = 0;
+
 pc8001m pc8001m
 (
 	.clk50(CLK_50M),		// input wire			clk50,
@@ -285,7 +286,7 @@ pc8001m pc8001m
 	.sd_clk(),				// output wire			sd_clk,
 	.sd_cmd(),				// output wire			sd_cmd,
 	.sd_res(),				// output wire			sd_res,
-	.audio_out(AUDIO_MIX),	// output wire [3:0]	audio_out,
+	.audio_out(audio),	// output wire [3:0]	audio_out,
 	.dac_out()				// output wire			dac_out
 );
 
