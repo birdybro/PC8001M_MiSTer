@@ -202,15 +202,15 @@ localparam CONF_STR = {
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"-;",
-	"O[1],Green Display,Off,On;"
-	"O[3],Full Dot Color,Off,On;"
+	"O[1],Green Display,Off,On;",
+	"O[3],Full Dot Color,Off,On;",
 	"-;",
-	"O[4],CPU Mode,PCG8100,PCG8200;"
-	"O[5],PCG,Off,On;"
-	"O[6],Expansion ROM,Off,On;"
-	"O[7],High-speed mode,Off,On;"
+	"O[4],CPU Mode,PCG8100,PCG8200;",
+	"O[5],PCG,Off,On;",
+	"O[6],Expansion ROM,Off,On;",
+	"O[7],High-speed mode,Off,On;",
 	"-;",
-	"O[2],Motor Beep,Off,On;"
+	"O[2],Motor Beep,Off,On;",
 	"-;",
 	"R[0],Reset and close OSD;",
 	"V,v",`BUILD_DATE 
