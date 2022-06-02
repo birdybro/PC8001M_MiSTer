@@ -299,8 +299,8 @@ video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
         .B(B),
 
         // Positive pulses.
-        .HSync(hsync),
-        .VSync(vsync),
+        .HSync(~hsync),
+        .VSync(~vsync),
         .HBlank(hblank),
         .VBlank(vblank)
 );
