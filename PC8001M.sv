@@ -205,9 +205,18 @@ localparam CONF_STR = {
 	"V,v",`BUILD_DATE 
 };
 
-wire forced_scandoubler;
-wire   [1:0] buttons;
 wire [127:0] status;
+
+wire forced_scandoubler;
+wire [21:0] gamma_bus;
+
+wire        ioctl_download;
+wire  [7:0] ioctl_index;
+wire        ioctl_wr;
+wire [24:0] ioctl_addr;
+wire  [7:0] ioctl_dout;
+
+wire  [1:0] buttons;
 wire  [10:0] ps2_key;
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
@@ -215,13 +224,19 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
 	.EXT_BUS(),
-	.gamma_bus(),
+	.gamma_bus(gamma_bus),
 
 	.forced_scandoubler(forced_scandoubler),
 
 	.buttons(buttons),
 	.status(status),
 	.status_menumask({status[5]}),
+
+	.ioctl_download(ioctl_download),
+	.ioctl_index(ioctl_index),
+	.ioctl_wr(ioctl_wr),
+	.ioctl_addr(ioctl_addr),
+	.ioctl_dout(ioctl_dout),
 	
 	.ps2_key(ps2_key)
 );
@@ -242,12 +257,32 @@ wire reset = RESET | status[0] | buttons[1];
 
 //////////////////////////////////////////////////////////////////
 
-wire HBlank;
-wire HSync;
-wire VBlank;
-wire VSync;
+wire [3:0] R,G,B;
 wire ce_pix;
-wire [7:0] video;
+wire hblank, vblank;
+wire hsync, vsync;
+
+video_mixer #(.LINE_LENGTH(160), .GAMMA(1)) video_mixer
+(
+        .*,
+
+        .ce_pix(ce_pix),
+        .freeze_sync(),
+
+        .scandoubler(scale || forced_scandoubler),
+        .hq2x(scale==1),
+
+        .VGA_DE(VGA_DE),
+        .R(R),
+        .G(G),
+        .B(B),
+
+        // Positive pulses.
+        .HSync(hsync),
+        .VSync(vsync),
+        .HBlank(hblank),
+        .VBlank(vblank)
+);
 
 wire [3:0] audio;
 assign AUDIO_L = audio;
@@ -258,42 +293,42 @@ assign AUDIO_MIX = 0;
 pc8001m pc8001m
 (
 	.clk50(CLK_50M),		// input wire			clk50,
-	.clk2(clk_sys),				// input wire			clk2,	//outclk_0 = 28.63636MHz - ref clk?
-	.clk48(clk48),				// input wire			clk48,	//outclk_3 = 48.00000MHz - 2nd ref clk?
+	.clk2(clk_sys),			// input wire			clk2,	//outclk_0 = 28.63636MHz - ref clk?
+	.clk48(clk48),			// input wire			clk48,	//outclk_3 = 48.00000MHz - 2nd ref clk?
 	.reset_n(~RESET),		// input	wire		reset_n,
 	.ps2_clk(),				// input wire			ps2_clk,
 	.ps2_data(),			// input wire			ps2_data,
 	.rxd(),					// input	wire		rxd,
 	.cmt_in(),				// input wire			cmt_in,
 	.txd(),					// output wire			txd,
-	.beep_out(),			// output wire			beep_out,
-	.motor_out(),			// output wire			motor_out,
+	// .beep_out(),			// output wire			beep_out,
+	// .motor_out(),		// output wire			motor_out,
 	.bw_out(),				// output wire [1:0]	bw_out,
-	.vga_hs(VGA_HS),		// output wire			vga_hs,
-	.vga_vs(VGA_VS),		// output wire			vga_vs,
-	.vga_r(VGA_R),			// output wire [3:0]	vga_r,
-	.vga_g(VGA_G),			// output wire [3:0]	vga_g,
-	.vga_b(VGA_B),			// output wire [3:0]	vga_b,
-	.HEX0(),				// output wire [6:0]	HEX0,
-	.HEX1(),				// output wire [6:0]	HEX1,
-	.HEX2(),				// output wire [6:0]	HEX2,
-	.HEX3(),				// output wire [6:0]	HEX3,
-	.HEX4(),				// output wire [6:0]	HEX4,
-	.HEX5(),				// output wire [6:0]	HEX5,
-	.LEDR(),				// output wire [9:0]	LEDR,
+	.vga_hs(hsync),		// output wire			vga_hs,
+	.vga_vs(vsync),		// output wire			vga_vs,
+	.vga_r(R),			// output wire [3:0]	vga_r,
+	.vga_g(G),			// output wire [3:0]	vga_g,
+	.vga_b(B),			// output wire [3:0]	vga_b,
+	// .HEX0(),				// output wire [6:0]	HEX0,
+	// .HEX1(),				// output wire [6:0]	HEX1,
+	// .HEX2(),				// output wire [6:0]	HEX2,
+	// .HEX3(),				// output wire [6:0]	HEX3,
+	// .HEX4(),				// output wire [6:0]	HEX4,
+	// .HEX5(),				// output wire [6:0]	HEX5,
+	// .LEDR(),				// output wire [9:0]	LEDR,
 	.SW(),					// input wire[ 9:0]		SW,
 	.sd_dat(),				// input wire			sd_dat,
 	.sd_clk(),				// output wire			sd_clk,
 	.sd_cmd(),				// output wire			sd_cmd,
 	.sd_res(),				// output wire			sd_res,
-	.audio_out(audio),	// output wire [3:0]	audio_out,
+	.audio_out(audio),		// output wire [3:0]	audio_out,
 	.dac_out()				// output wire			dac_out
 );
 
 assign CLK_VIDEO = clk_sys;
 assign CE_PIXEL = ce_pix;
 
-assign VGA_DE = ~(HBlank | VBlank);
+assign VGA_DE = ~(hblank | vblank);
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
