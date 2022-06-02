@@ -273,22 +273,37 @@ wire VSync;
 wire ce_pix;
 wire [7:0] video;
 
-PC8001M PC8001M
+pc8001m pc8001m
 (
-	.clk(clk_sys),
-	.reset(reset),
-	
-	.pal(status[2]),
-	.scandouble(forced_scandoubler),
-
-	.ce_pix(ce_pix),
-
-	.HBlank(HBlank),
-	.HSync(HSync),
-	.VBlank(VBlank),
-	.VSync(VSync),
-
-	.video(video)
+	.clk50(CLK_50M),	// input wire			clk50,
+	.reset_n(~RESET),	// input	wire		reset_n,
+	.ps2_clk(),	// input wire			ps2_clk,
+	.ps2_data(),	// input wire			ps2_data,
+	.rxd(),	// input	wire		rxd,
+	.cmt_in(),	// input wire			cmt_in,
+	.txd(),	// output wire			txd,
+	.beep_out(),	// output wire			beep_out,
+	.motor_out(),	// output wire			motor_out,
+	.bw_out(),	// output wire [1:0]	bw_out,
+	.vga_hs(VGA_HS),	// output wire			vga_hs,
+	.vga_vs(VGA_VS),	// output wire			vga_vs,
+	.vga_r(VGA_R),	// output wire [3:0]	vga_r,
+	.vga_g(VGA_G),	// output wire [3:0]	vga_g,
+	.vga_b(VGA_B),	// output wire [3:0]	vga_b,
+	.HEX0(),	// output wire [6:0]	HEX0,
+	.HEX1(),	// output wire [6:0]	HEX1,
+	.HEX2(),	// output wire [6:0]	HEX2,
+	.HEX3(),	// output wire [6:0]	HEX3,
+	.HEX4(),	// output wire [6:0]	HEX4,
+	.HEX5(),	// output wire [6:0]	HEX5,
+	.LEDR(),	// output wire [9:0]	LEDR,
+	.SW(),	// input wire[ 9:0]	SW,
+	.sd_dat(),	// input wire			sd_dat,
+	.sd_clk(),	// output wire			sd_clk,
+	.sd_cmd(),	// output wire			sd_cmd,
+	.sd_res(),	// output wire			sd_res,
+	.audio_out(AUDIO_MIX),	// output wire [3:0]	audio_out,
+	.dac_out()	// output wire			dac_out
 );
 
 assign CLK_VIDEO = clk_sys;
