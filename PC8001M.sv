@@ -278,22 +278,16 @@ wire reset = RESET | status[0] | buttons[1];
 
 //////////////////////////////////////////////////////////////////
 
+assign CLK_VIDEO = clk_sys;
 wire [3:0] R,G,B;
-wire ce_pix;
 wire hblank, vblank;
 wire hsync, vsync;
-
-always @(posedge clk_sys) begin
-	reg [3:0] div;
-	div <= div + 1'd1;
-	ce_pix <= !div;
-end
 
 video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
 (
         .*,
 
-        .ce_pix(ce_pix),
+        .ce_pix(),
         .freeze_sync(),
 
         .scandoubler(scale || forced_scandoubler),
@@ -363,8 +357,6 @@ pc8001m pc8001m
 	.audio_out(audio),		// output wire [3:0]	audio_out,
 	.dac_out()				// output wire			dac_out
 );
-
-assign CLK_VIDEO = clk_sys;
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
