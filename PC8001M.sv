@@ -275,46 +275,41 @@ wire [7:0] video;
 
 pc8001m pc8001m
 (
-	.clk50(CLK_50M),	// input wire			clk50,
-	.reset_n(~RESET),	// input	wire		reset_n,
-	.ps2_clk(),	// input wire			ps2_clk,
-	.ps2_data(),	// input wire			ps2_data,
-	.rxd(),	// input	wire		rxd,
-	.cmt_in(),	// input wire			cmt_in,
-	.txd(),	// output wire			txd,
-	.beep_out(),	// output wire			beep_out,
-	.motor_out(),	// output wire			motor_out,
-	.bw_out(),	// output wire [1:0]	bw_out,
-	.vga_hs(VGA_HS),	// output wire			vga_hs,
-	.vga_vs(VGA_VS),	// output wire			vga_vs,
-	.vga_r(VGA_R),	// output wire [3:0]	vga_r,
-	.vga_g(VGA_G),	// output wire [3:0]	vga_g,
-	.vga_b(VGA_B),	// output wire [3:0]	vga_b,
-	.HEX0(),	// output wire [6:0]	HEX0,
-	.HEX1(),	// output wire [6:0]	HEX1,
-	.HEX2(),	// output wire [6:0]	HEX2,
-	.HEX3(),	// output wire [6:0]	HEX3,
-	.HEX4(),	// output wire [6:0]	HEX4,
-	.HEX5(),	// output wire [6:0]	HEX5,
-	.LEDR(),	// output wire [9:0]	LEDR,
-	.SW(),	// input wire[ 9:0]	SW,
-	.sd_dat(),	// input wire			sd_dat,
-	.sd_clk(),	// output wire			sd_clk,
-	.sd_cmd(),	// output wire			sd_cmd,
-	.sd_res(),	// output wire			sd_res,
+	.clk50(clk_sys),		// input wire			clk50,
+	.reset_n(~RESET),		// input	wire		reset_n,
+	.ps2_clk(),				// input wire			ps2_clk,
+	.ps2_data(),			// input wire			ps2_data,
+	.rxd(),					// input	wire		rxd,
+	.cmt_in(),				// input wire			cmt_in,
+	.txd(),					// output wire			txd,
+	.beep_out(),			// output wire			beep_out,
+	.motor_out(),			// output wire			motor_out,
+	.bw_out(),				// output wire [1:0]	bw_out,
+	.vga_hs(VGA_HS),		// output wire			vga_hs,
+	.vga_vs(VGA_VS),		// output wire			vga_vs,
+	.vga_r(VGA_R),			// output wire [3:0]	vga_r,
+	.vga_g(VGA_G),			// output wire [3:0]	vga_g,
+	.vga_b(VGA_B),			// output wire [3:0]	vga_b,
+	.HEX0(),				// output wire [6:0]	HEX0,
+	.HEX1(),				// output wire [6:0]	HEX1,
+	.HEX2(),				// output wire [6:0]	HEX2,
+	.HEX3(),				// output wire [6:0]	HEX3,
+	.HEX4(),				// output wire [6:0]	HEX4,
+	.HEX5(),				// output wire [6:0]	HEX5,
+	.LEDR(),				// output wire [9:0]	LEDR,
+	.SW(),					// input wire[ 9:0]		SW,
+	.sd_dat(),				// input wire			sd_dat,
+	.sd_clk(),				// output wire			sd_clk,
+	.sd_cmd(),				// output wire			sd_cmd,
+	.sd_res(),				// output wire			sd_res,
 	.audio_out(AUDIO_MIX),	// output wire [3:0]	audio_out,
-	.dac_out()	// output wire			dac_out
+	.dac_out()				// output wire			dac_out
 );
 
 assign CLK_VIDEO = clk_sys;
 assign CE_PIXEL = ce_pix;
 
 assign VGA_DE = ~(HBlank | VBlank);
-assign VGA_HS = HSync;
-assign VGA_VS = VSync;
-assign VGA_G  = (!col || col == 2) ? video : 8'd0;
-assign VGA_R  = (!col || col == 1) ? video : 8'd0;
-assign VGA_B  = (!col || col == 3) ? video : 8'd0;
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 

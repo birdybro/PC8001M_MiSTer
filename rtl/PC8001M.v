@@ -36,7 +36,7 @@ module pc8001m (
 	output wire [6:0]	HEX4,
 	output wire [6:0]	HEX5,
 	output wire [9:0]	LEDR,
-	input wire[ 9:0]	SW,
+	input wire  [9:0]	SW,
 	input wire			sd_dat,
 	output wire			sd_clk,
 	output wire			sd_cmd,
