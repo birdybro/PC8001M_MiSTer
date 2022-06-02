@@ -29,7 +29,10 @@ module crtc(
 	output wire [3:0]		vga_r,
 	output wire [3:0]		vga_g,
 	output wire [3:0]		vga_b,
-	
+
+	output reg				vblank,
+	output reg				hblank,
+
 	input wire [10:0]		pcg_adr,
 	input wire [7:0]		pcg_data,
 	input wire				pcg_we,
@@ -407,14 +410,20 @@ module crtc(
 	always @(posedge clk2) begin
 		if (dotcnt2 == 909) begin
 			dotcnt2 <= 0;
+			vblank <= 1;
 			if (hcnt2 == 523) begin
 				hcnt2 <= 0;
+				hblank <= 1;
 			end
 			else begin
 				hcnt2 <= hcnt2 + 1;
+				hblank <= 0;
 			end
 		end
-		else dotcnt2 <= dotcnt2 + 1;
+		else begin
+			dotcnt2 <= dotcnt2 + 1;
+			vblank <= 0;
+		end
 	end
 	
 	always @ (posedge clk) begin

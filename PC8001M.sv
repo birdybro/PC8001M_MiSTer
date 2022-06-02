@@ -287,13 +287,13 @@ video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
 (
         .*,
 
-        .ce_pix(),
+        .ce_pix(1'b1),
         .freeze_sync(),
 
         .scandoubler(scale || forced_scandoubler),
         .hq2x(scale==1),
 
-        .VGA_DE(VGA_DE),
+        //.VGA_DE(VGA_DE),
         .R(R),
         .G(G),
         .B(B),
@@ -331,6 +331,8 @@ pc8001m pc8001m
 	.vga_r(R),				// output wire [3:0]	vga_r,
 	.vga_g(G),				// output wire [3:0]	vga_g,
 	.vga_b(B),				// output wire [3:0]	vga_b,
+	.vblank(vblank),				// output wire [3:0]	vga_g,
+	.hblank(hblank),				// output wire [3:0]	vga_b,	
 	// The following were commented out because they are solely for a seven seg display
 	// .HEX0(),				// output wire [6:0]	HEX0,
 	// .HEX1(),				// output wire [6:0]	HEX1,
