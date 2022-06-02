@@ -283,7 +283,7 @@ wire hblank, vblank;
 wire hsync, vsync;
 
 always @(posedge clk_sys) begin
-	reg [2:0] div;
+	reg [4:0] div;
 	div <= div + 1'd1;
 	ce_pix <= !div;
 end
