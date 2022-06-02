@@ -15,10 +15,10 @@
 
 module pc8001m (
 	input wire			clk50,
-	input	wire			reset_n,
+	input	wire		reset_n,
 	input wire			ps2_clk,
 	input wire			ps2_data,
-	input	wire			rxd,
+	input	wire		rxd,
 	input wire			cmt_in,
 	output wire			txd,
 	output wire			beep_out,

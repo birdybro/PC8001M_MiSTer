@@ -1,4 +1,4 @@
-
+Translated by google translate, so not perfect ~birdybro
 
 PC-8001 on DE10-Lite
  PC-8001 on DE0-CV
