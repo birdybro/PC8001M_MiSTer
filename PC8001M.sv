@@ -285,7 +285,7 @@ wire hblank, vblank;
 wire hsync, vsync;
 
 always @(posedge clk48) begin
-	reg [3:0] div;
+	reg [2:0] div;
 	div <= div + 1'd1;
 	ce_pix <= !div;
 end
