@@ -26,6 +26,8 @@ module crtc(
 	output [1:0] 			bw_out,
 	output wire				vga_hs,
 	output wire				vga_vs,
+	output reg				vga_vblank,
+	output reg				vga_hblank,
 	output wire [3:0]		vga_r,
 	output wire [3:0]		vga_g,
 	output wire [3:0]		vga_b,
