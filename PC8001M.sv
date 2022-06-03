@@ -281,7 +281,6 @@ wire reset = RESET | status[0] | buttons[1];
 assign CLK_VIDEO = clk_sys;
 wire [3:0] R,G,B;
 wire ce_pix;
-wire hblank, vblank;
 wire hsync, vsync;
 
 always @(posedge clk48) begin
@@ -308,14 +307,12 @@ video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
 
         // Positive pulses.
         .HSync(hsync),
-        .VSync(vsync),
-        .HBlank(hblank),
-        .VBlank(vblank)
+        .VSync(vsync)
 );
 
 wire [3:0] audio;
 assign AUDIO_L = audio;
-assign AUDIO_R = audio;
+assign AUDIO_R = AUDIO_L;
 assign AUDIO_S = 0;
 assign AUDIO_MIX = 0;
 
