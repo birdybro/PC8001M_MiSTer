@@ -279,7 +279,6 @@ wire reset = RESET | status[0] | buttons[1];
 //////////////////////////////////////////////////////////////////
 
 assign CLK_VIDEO = clk_sys;
-assign CE_PIXEL = ce_pix;
 wire [3:0] R,G,B;
 wire ce_pix;
 wire hblank, vblank;
@@ -289,7 +288,6 @@ video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
 (
         .*,
 
-        .ce_pix(ce_pix),
         .freeze_sync(),
 
         .scandoubler(scale || forced_scandoubler),
