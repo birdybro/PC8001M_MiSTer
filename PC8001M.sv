@@ -279,7 +279,9 @@ wire reset = RESET | status[0] | buttons[1];
 //////////////////////////////////////////////////////////////////
 
 assign CLK_VIDEO = clk_sys;
+assign CE_PIXEL = ce_pix;
 wire [3:0] R,G,B;
+wire ce_pix;
 wire hblank, vblank;
 wire hsync, vsync;
 
@@ -287,7 +289,7 @@ video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
 (
         .*,
 
-        .ce_pix(),
+        .ce_pix(ce_pix),
         .freeze_sync(),
 
         .scandoubler(scale || forced_scandoubler),
@@ -299,8 +301,8 @@ video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
         .B(B),
 
         // Positive pulses.
-        .HSync(~hsync),
-        .VSync(~vsync),
+        .HSync(hsync),
+        .VSync(vsync),
         .HBlank(hblank),
         .VBlank(vblank)
 );
@@ -328,6 +330,8 @@ pc8001m pc8001m
 	.bw_out(),				// output wire [1:0]	bw_out,
 	.vga_hs(hsync),			// output wire			vga_hs,
 	.vga_vs(vsync),			// output wire			vga_vs,
+	.vga_hblank(hblank),	// output wire			vga_hblank,
+	.vga_vblank(vblank),	// output wire			vga_vblank,
 	.vga_r(R),				// output wire [3:0]	vga_r,
 	.vga_g(G),				// output wire [3:0]	vga_g,
 	.vga_b(B),				// output wire [3:0]	vga_b,
@@ -357,6 +361,7 @@ pc8001m pc8001m
 	.audio_out(audio),		// output wire [3:0]	audio_out,
 	.dac_out()				// output wire			dac_out
 );
+
 
 reg  [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 

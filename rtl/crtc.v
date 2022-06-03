@@ -26,6 +26,8 @@ module crtc(
 	output [1:0] 			bw_out,
 	output wire				vga_hs,
 	output wire				vga_vs,
+	output wire				vga_vblank,
+	output wire				vga_hblank,
 	output wire [3:0]		vga_r,
 	output wire [3:0]		vga_g,
 	output wire [3:0]		vga_b,
@@ -127,16 +129,20 @@ module crtc(
 
 	//
 	always @(posedge clk) begin
+		vga_vblank <= 0;
+		vga_hblank <= 0;
 		if (dotcnt == 909) begin
 			dotcnt <= 0;
 			if (hcnt == 261) begin
 				hcnt <= 0;
 				vcnt <= vcnt + 1;
+				vga_vblank <= 1;
 			end
 			else begin
 				if (~vvalid | chlast) chcnt <= 4'b0000;
 				else chcnt <= chcnt + 1;
 				hcnt <= hcnt + 1;
+				vga_vblank <= 1;
 			end
 		end
 		else dotcnt <= dotcnt + 1;
