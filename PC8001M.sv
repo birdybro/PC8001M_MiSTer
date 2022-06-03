@@ -284,9 +284,17 @@ wire ce_pix;
 wire hblank, vblank;
 wire hsync, vsync;
 
+always @(posedge clk48) begin
+	reg [3:0] div;
+	div <= div + 1'd1;
+	ce_pix <= !div;
+end
+
 video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
 (
         .*,
+
+		.ce_pix(ce_pix),
 
         .freeze_sync(),
 
