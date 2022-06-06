@@ -219,16 +219,16 @@ localparam CONF_STR = {
 
 wire [127:0] status;
 
-wire green_display = status[1];
-wire motor_beep = status[2];
-wire fdc = status[3];
-wire cpu_mode = status[4];
-wire pcg = status[5];
-wire exp_rom = status[6];
-wire high_speed = status[7];
+wire       green_display = status[1];
+wire       motor_beep = status[2];
+wire       fdc = status[3];
+wire       cpu_mode = status[4];
+wire       pcg = status[5];
+wire       exp_rom = status[6];
+wire       high_speed = status[7];
 wire [9:0] switch = {high_speed, 1'b0, exp_rom, 1'b0, pcg, cpu_mode, fdc, motor_beep, 1'b0, green_display};
 
-wire forced_scandoubler;
+wire        forced_scandoubler;
 wire [21:0] gamma_bus;
 
 wire        ioctl_download;
@@ -238,7 +238,7 @@ wire [24:0] ioctl_addr;
 wire  [7:0] ioctl_dout;
 
 wire  [1:0] buttons;
-wire  [10:0] ps2_key;
+wire [10:0] ps2_key;
 
 wire ps2_kbd_clk;
 wire ps2_kbd_data;
@@ -267,7 +267,7 @@ hps_io #(.CONF_STR(CONF_STR), .PS2DIV(1000)) hps_io
 	.ps2_key(ps2_key)
 );
 
-///////////////////////   CLOCKS   ///////////////////////////////
+// CLOCKS
 
 wire clk_sys,clk48;
 wire clk50 = CLK_50M;
@@ -281,8 +281,7 @@ pll pll
 
 wire reset = RESET | status[0] | buttons[1];
 
-//////////////////////////////////////////////////////////////////
-
+// VIDEO
 wire [3:0] R,G,B;
 wire ce_pix;
 wire hsync, vsync;
@@ -292,35 +291,6 @@ always @(posedge clk48) begin
 	div <= div + 1'd1;
 	ce_pix <= !div;
 end
-/*
-video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
-(
-        .*,
-
-		.ce_pix(ce_pix),
-
-        .freeze_sync(),
-
-        .scandoubler(scale || forced_scandoubler),
-        .hq2x(scale==1),
-
-        .VGA_DE(VGA_DE),
-        .R(R),
-        .G(G),
-        .B(B),
-
-        // Positive pulses.
-        .HSync(hsync),
-        .VSync(vsync)
-);
-*/
-wire [3:0] audio;
-assign AUDIO_L = audio;
-assign AUDIO_R = AUDIO_L;
-assign AUDIO_S = 0;
-assign AUDIO_MIX = 0;
-assign CLK_VIDEO = clk_sys;
-
 
 assign CE_PIXEL  = 1;
 
@@ -334,7 +304,14 @@ assign VGA_HS = hsync;
 assign VGA_F1 = 0;
 assign VGA_SL = 0;
 
+// AUDIO
+wire [3:0] audio;
+assign AUDIO_L = audio;
+assign AUDIO_R = AUDIO_L;
+assign AUDIO_S = 0;
+assign AUDIO_MIX = 0;
 
+// CORE
 pc8001m pc8001m
 (
 	.clk50(CLK_50M),		// input wire			clk50,
@@ -346,17 +323,19 @@ pc8001m pc8001m
 	.rxd(),					// input wire			rxd, // rxd input JP2-9 PIN_G18 SIO input ・ 
 	.cmt_in(),				// input wire			cmt_in, // ○ CMT / SIO input / output ・ cmt_in input JP2-7 PIN_C13 External comparator circuit required) 
 	.txd(),					// output wire			txd, // txd output JP2-10 PIN_G17 SIO output <DE10-Lite> 
-	// These were commented out as they are for an ext. piezo device. should add them in later mixed into the audio
+
+	// These were commented out as they are for an ext. piezo device. should maybe add them in later mixed into the audio
 	// .beep_out(),			// output wire			beep_out,
 	// .motor_out(),		// output wire			motor_out,
 	.bw_out(),				// output wire [1:0]	bw_out,
 	.vga_hs(hsync),			// output wire			vga_hs,
 	.vga_vs(vsync),			// output wire			vga_vs,
-	.vga_hblank(HBlank),	// output wire			vga_hblank,
-	.vga_vblank(VBlank),	// output wire			vga_vblank,
+	.vga_hblank(HBlank),	// output wire			vga_hblank, (hvalid2)
+	.vga_vblank(VBlank),	// output wire			vga_vblank, (vvalid2)
 	.vga_r(R),				// output wire [3:0]	vga_r,
 	.vga_g(G),				// output wire [3:0]	vga_g,
 	.vga_b(B),				// output wire [3:0]	vga_b,
+
 	// The following were commented out because they are solely for a seven seg display
 	// .HEX0(),				// output wire [6:0]	HEX0,
 	// .HEX1(),				// output wire [6:0]	HEX1,
