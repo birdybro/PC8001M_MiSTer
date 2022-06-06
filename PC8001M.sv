@@ -240,7 +240,10 @@ wire  [7:0] ioctl_dout;
 wire  [1:0] buttons;
 wire  [10:0] ps2_key;
 
-hps_io #(.CONF_STR(CONF_STR)) hps_io
+wire ps2_kbd_clk;
+wire ps2_kbd_data;
+
+hps_io #(.CONF_STR(CONF_STR), .PS2DIV(1000)) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
@@ -258,7 +261,9 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
-	
+	.ps2_kbd_clk_out    ( ps2_kbd_clk    ),
+	.ps2_kbd_data_out   ( ps2_kbd_data   ),
+
 	.ps2_key(ps2_key)
 );
 
@@ -278,7 +283,6 @@ wire reset = RESET | status[0] | buttons[1];
 
 //////////////////////////////////////////////////////////////////
 
-assign CLK_VIDEO = clk_sys;
 wire [3:0] R,G,B;
 wire ce_pix;
 wire hsync, vsync;
@@ -288,7 +292,7 @@ always @(posedge clk48) begin
 	div <= div + 1'd1;
 	ce_pix <= !div;
 end
-
+/*
 video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
 (
         .*,
@@ -309,12 +313,27 @@ video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
         .HSync(hsync),
         .VSync(vsync)
 );
-
+*/
 wire [3:0] audio;
 assign AUDIO_L = audio;
 assign AUDIO_R = AUDIO_L;
 assign AUDIO_S = 0;
 assign AUDIO_MIX = 0;
+assign CLK_VIDEO = clk_sys;
+
+
+assign CE_PIXEL  = 1;
+
+assign CLK_VIDEO = clk_sys;
+assign VGA_R  = {R,R};
+assign VGA_G  = {G,G};
+assign VGA_B  = {B,B};
+assign VGA_DE = ~(VBlank | HBlank);
+assign VGA_VS = vsync;
+assign VGA_HS = hsync;
+assign VGA_F1 = 0;
+assign VGA_SL = 0;
+
 
 pc8001m pc8001m
 (
@@ -322,8 +341,8 @@ pc8001m pc8001m
 	.clk2(clk_sys),			// input wire			clk2,	//outclk_0 = 28.63636MHz - ref clk
 	.clk48(clk48),			// input wire			clk48,	//outclk_3 = 48.00000MHz - 2nd ref clk for video?
 	.reset_n(~RESET),		// input wire			reset_n,
-	.ps2_clk(),				// input wire			ps2_clk,
-	.ps2_data(),			// input wire			ps2_data,
+	.ps2_clk(ps2_kbd_clk),				// input wire			ps2_clk,
+	.ps2_data(ps2_kbd_data),			// input wire			ps2_data,
 	.rxd(),					// input wire			rxd, // rxd input JP2-9 PIN_G18 SIO input ・ 
 	.cmt_in(),				// input wire			cmt_in, // ○ CMT / SIO input / output ・ cmt_in input JP2-7 PIN_C13 External comparator circuit required) 
 	.txd(),					// output wire			txd, // txd output JP2-10 PIN_G17 SIO output <DE10-Lite> 
@@ -333,8 +352,8 @@ pc8001m pc8001m
 	.bw_out(),				// output wire [1:0]	bw_out,
 	.vga_hs(hsync),			// output wire			vga_hs,
 	.vga_vs(vsync),			// output wire			vga_vs,
-	.vga_hblank(hblank),	// output wire			vga_hblank,
-	.vga_vblank(vblank),	// output wire			vga_vblank,
+	.vga_hblank(HBlank),	// output wire			vga_hblank,
+	.vga_vblank(VBlank),	// output wire			vga_vblank,
 	.vga_r(R),				// output wire [3:0]	vga_r,
 	.vga_g(G),				// output wire [3:0]	vga_g,
 	.vga_b(B),				// output wire [3:0]	vga_b,

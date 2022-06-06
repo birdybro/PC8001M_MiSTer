@@ -26,8 +26,8 @@ module crtc(
 	output [1:0] 			bw_out,
 	output wire				vga_hs,
 	output wire				vga_vs,
-	output reg				vga_vblank,
-	output reg				vga_hblank,
+	output wire				vga_vblank,
+	output wire				vga_hblank,
 	output wire [3:0]		vga_r,
 	output wire [3:0]		vga_g,
 	output wire [3:0]		vga_b,
@@ -445,7 +445,11 @@ module crtc(
 	assign vga_g = mode ?
 						( hvalid2 & vvalid2 & lb_out[3] ? { lb_out[2:0], 1'b1 } : 4'b0001 ) :
 						( hvalid2 & vvalid2 & lb_out[3] & lb_out[2] ? 4'b1111 : 4'b0000 );				
-					
+
+   assign vga_vblank	=~vvalid2;
+   assign vga_hblank	=~hvalid2;
+	
+	
 endmodule
 
 
