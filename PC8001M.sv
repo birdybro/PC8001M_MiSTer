@@ -231,19 +231,31 @@ wire [9:0] switch = {high_speed, 1'b0, exp_rom, 1'b0, pcg, cpu_mode, fdc, motor_
 wire forced_scandoubler;
 wire [21:0] gamma_bus;
 
+wire [31:0] sd_lba[3];
+wire [ 2:0] sd_rd;
+wire [ 2:0] sd_wr;
+wire [ 2:0] sd_ack;
+wire [12:0] sd_buff_addr;
+wire [ 7:0] sd_buff_dout;
+wire [ 7:0] sd_buff_din[3];
+wire        sd_buff_wr;
+wire [ 2:0] img_mounted;
+wire        img_readonly;
+wire [63:0] img_size;
+
 wire        ioctl_download;
-wire  [7:0] ioctl_index;
+wire [ 7:0] ioctl_index;
 wire        ioctl_wr;
 wire [24:0] ioctl_addr;
-wire  [7:0] ioctl_dout;
+wire [ 7:0] ioctl_dout;
 
-wire  [1:0] buttons;
-wire  [10:0] ps2_key;
+wire [ 1:0] buttons;
+wire [10:0] ps2_key;
 
 wire ps2_kbd_clk;
 wire ps2_kbd_data;
 
-hps_io #(.CONF_STR(CONF_STR), .PS2DIV(1000)) hps_io
+hps_io #(.CONF_STR(CONF_STR), .PS2DIV(1000), .BLKSZ(2)) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
@@ -261,14 +273,26 @@ hps_io #(.CONF_STR(CONF_STR), .PS2DIV(1000)) hps_io
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
+
+	.sd_lba(sd_lba),
+	.sd_rd(sd_rd),
+	.sd_wr(sd_wr),
+	.sd_ack(sd_ack),
+	.sd_buff_addr(sd_buff_addr),
+	.sd_buff_dout(sd_buff_dout),
+	.sd_buff_din(sd_buff_din),
+	.sd_buff_wr(sd_buff_wr),
+	.img_mounted(img_mounted),
+	.img_readonly(img_readonly),
+	.img_size(img_size),
+
 	.ps2_kbd_clk_out    ( ps2_kbd_clk    ),
 	.ps2_kbd_data_out   ( ps2_kbd_data   ),
 
 	.ps2_key(ps2_key)
 );
 
-///////////////////////   CLOCKS   ///////////////////////////////
-
+// Clocks
 wire clk_sys,clk48;
 wire clk50 = CLK_50M;
 pll pll
@@ -279,51 +303,20 @@ pll pll
 	.outclk_1(clk48)
 );
 
-wire reset = RESET | status[0] | buttons[1];
+wire reset = RESET | status[0] | buttons[1] | img_mounted;
 
-//////////////////////////////////////////////////////////////////
-
-wire [3:0] R,G,B;
-wire ce_pix;
-wire hsync, vsync;
-
-always @(posedge clk48) begin
-	reg [2:0] div;
-	div <= div + 1'd1;
-	ce_pix <= !div;
-end
-/*
-video_mixer #(.LINE_LENGTH(320), .GAMMA(1)) video_mixer
-(
-        .*,
-
-		.ce_pix(ce_pix),
-
-        .freeze_sync(),
-
-        .scandoubler(scale || forced_scandoubler),
-        .hq2x(scale==1),
-
-        .VGA_DE(VGA_DE),
-        .R(R),
-        .G(G),
-        .B(B),
-
-        // Positive pulses.
-        .HSync(hsync),
-        .VSync(vsync)
-);
-*/
+// Audio
 wire [3:0] audio;
 assign AUDIO_L = audio;
 assign AUDIO_R = AUDIO_L;
 assign AUDIO_S = 0;
 assign AUDIO_MIX = 0;
-assign CLK_VIDEO = clk_sys;
 
+// Video
+wire [3:0] R,G,B;
+wire hsync, vsync;
 
 assign CE_PIXEL  = 1;
-
 assign CLK_VIDEO = clk_sys;
 assign VGA_R  = {R,R};
 assign VGA_G  = {G,G};
@@ -334,21 +327,86 @@ assign VGA_HS = hsync;
 assign VGA_F1 = 0;
 assign VGA_SL = 0;
 
+wire ce_pix;
+always @(posedge clk48) begin
+	reg [2:0] div;
+	div <= div + 1'd1;
+	ce_pix <= !div;
+end
 
+// SD
+wire sdclk;
+wire sdmosi;
+wire vsdmiso;
+wire sdmiso = vsd_sel ? vsdmiso : SD_MISO;
+wire sdss;
+
+reg vsd_sel = 0;
+always @(posedge clk_sys) if(img_mounted) vsd_sel <= |img_size;
+
+sd_card #(.WIDE(0)) sd_card
+(
+	.*,
+
+	.img_mounted(img_mounted[0]),
+	.sd_buff_addr(sd_buff_addr[8:0]),
+	.sd_rd(sd_rd[0]),
+	.sd_wr(sd_wr[0]),
+	.sd_ack(sd_ack[0]),
+	
+	.sd_lba(sd_lba[0]),
+	.sd_buff_din(sd_buff_din[0]),
+
+	
+	.clk_spi(clk_sys),
+	.sdhc(1),
+	.sck(sdclk),
+	.ss(sdss | ~vsd_sel),
+	.mosi(sdmosi),
+	.miso(vsdmiso)
+);
+
+assign SD_CS   = sdss   |  vsd_sel;
+assign SD_SCK  = sdclk  & ~vsd_sel;
+assign SD_MOSI = sdmosi & ~vsd_sel;
+
+reg sd_act;
+
+always @(posedge clk_sys) begin
+	reg old_mosi, old_miso;
+	integer timeout = 0;
+
+	old_mosi <= sdmosi;
+	old_miso <= sdmiso;
+
+	sd_act <= 0;
+	if(timeout < 2000000) begin
+		timeout <= timeout + 1;
+		sd_act <= 1;
+	end
+
+	if((old_mosi ^ sdmosi) || (old_miso ^ sdmiso)) timeout <= 0;
+end
+
+// Core
 pc8001m pc8001m
 (
 	.clk50(CLK_50M),		// input wire			clk50,
 	.clk2(clk_sys),			// input wire			clk2,	//outclk_0 = 28.63636MHz - ref clk
 	.clk48(clk48),			// input wire			clk48,	//outclk_3 = 48.00000MHz - 2nd ref clk for video?
 	.reset_n(~RESET),		// input wire			reset_n,
+
 	.ps2_clk(ps2_kbd_clk),				// input wire			ps2_clk,
 	.ps2_data(ps2_kbd_data),			// input wire			ps2_data,
+
 	.rxd(),					// input wire			rxd, // rxd input JP2-9 PIN_G18 SIO input ・ 
 	.cmt_in(),				// input wire			cmt_in, // ○ CMT / SIO input / output ・ cmt_in input JP2-7 PIN_C13 External comparator circuit required) 
 	.txd(),					// output wire			txd, // txd output JP2-10 PIN_G17 SIO output <DE10-Lite> 
+
 	// These were commented out as they are for an ext. piezo device. should add them in later mixed into the audio
 	// .beep_out(),			// output wire			beep_out,
 	// .motor_out(),		// output wire			motor_out,
+
 	.bw_out(),				// output wire [1:0]	bw_out,
 	.vga_hs(hsync),			// output wire			vga_hs,
 	.vga_vs(vsync),			// output wire			vga_vs,
@@ -357,6 +415,7 @@ pc8001m pc8001m
 	.vga_r(R),				// output wire [3:0]	vga_r,
 	.vga_g(G),				// output wire [3:0]	vga_g,
 	.vga_b(B),				// output wire [3:0]	vga_b,
+
 	// The following were commented out because they are solely for a seven seg display
 	// .HEX0(),				// output wire [6:0]	HEX0,
 	// .HEX1(),				// output wire [6:0]	HEX1,
@@ -366,27 +425,15 @@ pc8001m pc8001m
 	// .HEX5(),				// output wire [6:0]	HEX5,
 	// .LEDR(),				// output wire [9:0]	LEDR,
 
-// 	○ Slide SW OFF ON 
-//  ・ SW0 color monitor display Green monitor display ・ SW1 unused ・ SW2 BEEP CMT output (linked with motor) 
-//  ・ SW3 FDC OFF FDC ON (FDC: PCG full dot color) 
-//  ・ SW4 PCG8100 mode PCG8200 mode ・ SW5 PCG OFF PCG ON 
-//  ・ SW6 unused ・ SW7 without expansion ROM Expansion ROM (SD-DOS) available ・ SW8 unused 		
-//  ・ SW9 Normal mode High-speed mode (WAIT reduced) 
-//  * If you move SW9, the operation may freeze. ○ Push button ・ KEY0 reset (STOP + reset possible) 
-//  ・ KEY1 unused ・ KEY2 (DE0-CV) unused ・ KEY3 (DE0-CV) unused ○ LED 
 	.SW(switch),			// input wire  [9:0]	SW,
 
 	.sd_dat(),				// input wire			sd_dat,
 	.sd_clk(),				// output wire			sd_clk,
 	.sd_cmd(),				// output wire			sd_cmd,
 	.sd_res(),				// output wire			sd_res,
+
 	.audio_out(audio),		// output wire [3:0]	audio_out,
 	.dac_out()				// output wire			dac_out
 );
-
-
-reg  [26:0] act_cnt;
-always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
-assign LED_USER    = act_cnt[26]  ? act_cnt[25:18]  > act_cnt[7:0]  : act_cnt[25:18]  <= act_cnt[7:0];
 
 endmodule
